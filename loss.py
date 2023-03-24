@@ -40,7 +40,6 @@ def compute_G_loss(models, psp_model, args, image, m_image, mask, fac_weights, e
     #WGAN-GP
     with torch.no_grad():
         g_out_fake, _ = models.discriminator(completion_image)
-        _, g_real_feature = models.discriminator(image)
     adv_g_loss = g_out_fake.mean().sum()
 
     #HOLE & VALID LOSS

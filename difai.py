@@ -20,13 +20,13 @@ class DIFAI(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.args = args
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print(self.device)
         self.models = CM.build_model(args)
 
-        self.models.generator.cuda()
-        self.models.discriminator.cuda()
-        self.models.MLGN.cuda()
+        self.models.generator.to(self.args.device)
+        self.models.discriminator.to(self.args.device)
+        self.models.MLGN.to(self.args.device)
 
         self.psp_model = CM.build_psp_model(args)
         self.optims = Munch()
@@ -125,7 +125,6 @@ class DIFAI(nn.Module):
             _ = next(fetcher)
         inputs = next(fetcher)
 
-
         utils.debug_image(val_models, val_psp_models, args, sample_inputs=inputs, step=args.resume_iter)
 
     @torch.no_grad()
@@ -146,8 +145,8 @@ class DIFAI(nn.Module):
             src_img = Image.open(ospj(args.image_test_dir, image_name))
             mask_ = Image.open(ospj(args.masks_test_dir, image_name))
 
-            src_img = img_transform(src_img).unsqueeze(0).to(self.device)
-            mask_ = mask_transform(mask_).unsqueeze(0).to(self.device)
+            src_img = img_transform(src_img).unsqueeze(0).to(self.args.device)
+            mask_ = mask_transform(mask_).unsqueeze(0).to(self.args.device)
 
             utils.debug_image(test_models,
                               test_psp_models,

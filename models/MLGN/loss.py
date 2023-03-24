@@ -5,7 +5,7 @@ import torch
 from torch import autograd
 import pytorch_msssim
 
-def compute_G_loss(models, args, image, m_image, mask, device):
+def compute_G_loss(models, args, image, m_image, mask):
     g_mask = 1. - mask
     m_image = torch.cat((m_image, g_mask), 1)
 
@@ -16,7 +16,7 @@ def compute_G_loss(models, args, image, m_image, mask, device):
         cmp_D = models.discriminator(completion_image)
 
     # vgg style loss
-    extractor = VGG16FeatureExtractor().to(device)
+    extractor = VGG16FeatureExtractor().to(args.device)
     feat_output_comp = extractor(completion_image)
     feat_output = extractor(semi_completion_image)
     feat_gt = extractor(image)
@@ -44,7 +44,7 @@ def compute_G_loss(models, args, image, m_image, mask, device):
 
     return loss, Munch(fake=adv_fake_loss, valid=loss_G_L1, MSSSIM=loss_ms_ssim_value, vgg_sty=vgg_style_loss)
 
-def compute_D_loss(models, args, image, m_image, mask, device):
+def compute_D_loss(models, args, image, m_image, mask):
     g_mask = 1. - mask
     m_image = torch.cat((m_image, g_mask), 1)
 
@@ -62,7 +62,7 @@ def compute_D_loss(models, args, image, m_image, mask, device):
     #WGAN-GP fake to fake
     adv_fake_loss = fake_D.mean().sum() * 1
 
-    loss_gp = calc_gradient_penalty(models.discriminator, image, completion_image, device, args.mlgn_lambda_gp)
+    loss_gp = calc_gradient_penalty(models.discriminator, image, completion_image, args.device, args.mlgn_lambda_gp)
 
     loss = adv_fake_loss - adv_real_loss + loss_gp
     return loss, Munch(real=adv_real_loss, fake=adv_fake_loss, gp=loss_gp)

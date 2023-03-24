@@ -96,7 +96,7 @@ def load_stylegan(args):
     generator = stylegan2.StyleGAN2Generator(resolution=1024)
     checkpoint = torch.load(args.stylegan2_checkpoint_path, map_location='cpu')
     generator.load_state_dict(checkpoint['generator'])
-    generator = generator.cuda()
+    generator = generator.to(args.device)
     generator.eval()
     return generator
 
@@ -123,7 +123,7 @@ def debug_image(models, psp_model, args, sample_inputs, step, img_name=None):
     for idx, distance in enumerate(distances):
         temp_code = latent.cpu().numpy().copy()
         temp_code[:, layers, :] += boundary * distance
-        tmp_style_img, style_latent = psp_model.PSP(coarse_image, layers, torch.tensor(temp_code).cuda())
+        tmp_style_img, style_latent = psp_model.PSP(coarse_image, layers, torch.tensor(temp_code).to(args.device))
         tmp_completion_image, _ = models.generator(m_image, tmp_style_img * reverse_mask + image * mask, reverse_mask)
         comp_imgs.append(tmp_completion_image)
 

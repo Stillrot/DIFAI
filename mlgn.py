@@ -19,12 +19,12 @@ class MLGN(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.args = args
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        print(self.device)
+        self.args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        print(self.args.device)
         self.models = network.build_MLGN_model(args)
 
-        self.models.generator.cuda()
-        self.models.discriminator.cuda()
+        self.models.generator.to(self.args.device)
+        self.models.discriminator.to(self.args.device)
 
         self.optims = Munch()
         for model in self.models.keys():
@@ -60,7 +60,7 @@ class MLGN(nn.Module):
         print('train dataloader')
         tr_loader = dl.dataset_loader(args, 'train')
         train_loader = DataLoader(dataset=tr_loader, batch_size=args.batch_size, num_workers=4, shuffle=True)
-        fetcher = dl.InputFetcher(train_loader, 'train')
+        fetcher = dl.InputFetcher(train_loader)
 
         if args.resume_iter > 0:
             self._load_checkpoint(args.resume_iter)
@@ -77,13 +77,13 @@ class MLGN(nn.Module):
             m_image = torch.mul(image, mask)
 
             # D train
-            d_loss, d_loss_group = compute_D_loss(self.models, self.args, image, m_image, mask, self.device)
+            d_loss, d_loss_group = compute_D_loss(self.models, self.args, image, m_image, mask)
             self._reset_grad()
             d_loss.backward()
             optims.discriminator.step()
 
             # G train
-            g_loss, g_loss_group = compute_G_loss(self.models, self.args, image, m_image, mask, self.device)
+            g_loss, g_loss_group = compute_G_loss(self.models, self.args, image, m_image, mask)
             self._reset_grad()
             g_loss.backward()
             optims.generator.step()
@@ -141,8 +141,8 @@ class MLGN(nn.Module):
                                                  transforms.Grayscale(num_output_channels=1),
                                                  transforms.ToTensor()])
 
-            src_img = img_transform(src_img).to(self.device)
-            mask = mask_transform(mask).to(self.device)
+            src_img = img_transform(src_img).to(self.args.device)
+            mask = mask_transform(mask).to(self.args.device)
             m_image = torch.mul(src_img, mask)
 
             comp_image = test_models.generator(torch.cat((m_image, 1.-mask), 0).unsqueeze(0))
