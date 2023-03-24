@@ -180,7 +180,7 @@ def debug_image(models, psp_model, args, sample_inputs, step, img_name=None):
         if args.mode == 'test':
             filename6 = ospj(args.test_sample_dir, '6_completion_style_%s_%02d.jpg' % (img_name, idx))
         elif args.mode == 'val':
-            filename6 = ospj(args.val_sample_dir, '%06d_6_completion_style.jpg' % (step, idx))
+            filename6 = ospj(args.val_sample_dir, '%06d_6_completion_style_%02d.jpg' % (step, idx))
         # elif args.mode == 'train':
         else:
             raise NotImplementedError

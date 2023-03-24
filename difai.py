@@ -116,7 +116,7 @@ class DIFAI(nn.Module):
         val_psp_models = CM.build_psp_model(args)
         os.makedirs(args.val_sample_dir, exist_ok=True)
         self._load_checkpoint(args.resume_iter)
-        v_loader = dl.val_dataset_loader(args, 'val')
+        v_loader = dl.dataset_loader(args, 'val')
         val_loader = DataLoader(dataset=v_loader, batch_size=args.batch_size, num_workers=4, shuffle=True)
         fetcher = dl.InputFetcher(val_loader)
 
@@ -134,7 +134,7 @@ class DIFAI(nn.Module):
         test_psp_models = CM.build_psp_model(args)
         os.makedirs(args.test_sample_dir, exist_ok=True)
         self._load_checkpoint(args.resume_iter)
-        images_name = os.listdidr(args.image_test_dir)
+        images_name = os.listdir(args.image_test_dir)
 
         img_transform = transforms.Compose([transforms.Resize(size=args.img_size),
                                             transforms.ToTensor(),
@@ -146,8 +146,8 @@ class DIFAI(nn.Module):
             src_img = Image.open(ospj(args.image_test_dir, image_name))
             mask_ = Image.open(ospj(args.masks_test_dir, image_name))
 
-            src_img = img_transform(src_img)
-            mask_ = mask_transform(mask_)
+            src_img = img_transform(src_img).unsqueeze(0).to(self.device)
+            mask_ = mask_transform(mask_).unsqueeze(0).to(self.device)
 
             utils.debug_image(test_models,
                               test_psp_models,
